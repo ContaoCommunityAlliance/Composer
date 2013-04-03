@@ -1,7 +1,7 @@
 <?php
 
 use Composer\Composer;
-use Composer\Factory;
+use ContaoCommunityAlliance\Factory;
 use Composer\Installer;
 use Composer\Console\HtmlOutputFormatter;
 use Composer\IO\BufferIO;
@@ -157,10 +157,10 @@ class ComposerClientBackend extends BackendModule
 		/*
 		 * Use composer.phar only, if composer is not installed locally
 		 */
-		if (!file_exists(TL_ROOT . '/composer/vendor/composer/composer/src/Composer/Composer.php') ||
+		if (!file_exists(TL_ROOT . '/composer/vendor/contao-community-alliance/cce/src/Composer/Composer.php') ||
 			!file_exists(TL_ROOT . '/composer/vendor/autoload.php')
 		) {
-			if (!file_exists(TL_ROOT . '/composer/composer.phar')) {
+			if (!file_exists(TL_ROOT . '/composer/cce.phar')) {
 				// switch template
 				$this->Template->setName('be_composer_client_install_composer');
 
@@ -189,10 +189,10 @@ class ComposerClientBackend extends BackendModule
 	 */
 	protected function updateComposer()
 	{
-		$url = 'https://getcomposer.org/composer.phar';
+		$url = 'http://packages-via.contao-community-alliance.org/cce.phar';
 
 		try {
-			$this->download($url, TL_ROOT . '/composer/composer.phar');
+			$this->download($url, TL_ROOT . '/composer/cce.phar');
 			$_SESSION['TL_CONFIRM'][] = $GLOBALS['TL_LANG']['composer_client']['composerUpdated'];
 			return true;
 		}
@@ -219,18 +219,17 @@ class ComposerClientBackend extends BackendModule
 		$this->increaseMemoryLimit();
 
 		// register composer class loader
-		if (file_exists(TL_ROOT . '/composer/vendor/composer/composer/src/Composer/Composer.php') &&
+		if (file_exists(TL_ROOT . '/composer/vendor/contao-community-alliance/cce/src/Composer/Composer.php') &&
 			file_exists(TL_ROOT . '/composer/vendor/autoload.php')
 		) {
 			require_once(TL_ROOT . '/composer/vendor/autoload.php');
 		}
 
 		// register composer class loader from phar
-		if (file_exists(TL_ROOT . '/composer/composer.phar')) {
-			$phar             = new Phar(TL_ROOT . '/composer/composer.phar');
+		if (file_exists(TL_ROOT . '/composer/cce.phar')) {
+			$phar             = new Phar(TL_ROOT . '/composer/cce.phar');
 			$autoloadPathname = $phar['vendor/autoload.php'];
 			require_once($autoloadPathname->getPathname());
-
 		}
 
 		// reregister contao class loader
@@ -239,7 +238,7 @@ class ComposerClientBackend extends BackendModule
 		}
 
 		// search for composer build version
-		if (file_exists(TL_ROOT . '/composer/composer.phar')) {
+		if (file_exists(TL_ROOT . '/composer/cce.phar')) {
 			$composerDevWarningTime = $this->readComposerDevWarningTime();
 			if (!$composerDevWarningTime || time() > $composerDevWarningTime) {
 				$_SESSION['TL_ERROR'][]         = $GLOBALS['TL_LANG']['composer_client']['composerUpdateRequired'];
@@ -310,7 +309,7 @@ class ComposerClientBackend extends BackendModule
 	 */
 	protected function readComposerDevWarningTime()
 	{
-		$configPathname = new File('composer/composer.phar');
+		$configPathname = new File('composer/cce.phar');
 		$buffer         = '';
 		do {
 			$buffer .= fread($configPathname->handle, 1024);
