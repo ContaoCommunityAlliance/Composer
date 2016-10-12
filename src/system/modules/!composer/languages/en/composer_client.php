@@ -12,6 +12,7 @@ $GLOBALS['TL_LANG']['composer_client']['solve_headline']            = 'Dependenc
 $GLOBALS['TL_LANG']['composer_client']['editor_headline']           = 'Experts mode';
 $GLOBALS['TL_LANG']['composer_client']['dependency_graph_headline'] = 'Dependency graph';
 $GLOBALS['TL_LANG']['composer_client']['detached']                  = 'Package update';
+$GLOBALS['TL_LANG']['composer_client']['cloud_update']              = 'Cloud update (Beta version!)';
 
 /**
  * References
@@ -41,6 +42,80 @@ $GLOBALS['TL_LANG']['composer_client']['install_composer']      = 'Install Compo
 $GLOBALS['TL_LANG']['composer_client']['search_placeholder']    = 'Package name or keyword';
 $GLOBALS['TL_LANG']['composer_client']['download_impossible']   =
     'Downloading is impossible, please either enable the PHP zip extension or ensure proc_open() may run unzip.';
+
+/**
+ * Cloud update
+ */
+$GLOBALS['TL_LANG']['composer_client']['cloud_update_explanation'] = <<<CLOUDUPDATEEXPLANATION
+<h2>Welcome to the Beta program of the Cloud Update</h2>
+
+<p>Composer is a really great package manager. A lot of developers that develop their
+projects in different programming languages even call it one of the best.</p>
+
+<p>Composer itself is great. However, the language it is written in - PHP - is
+not really a great language for the tasks of a package manager. This is probably
+one reasons why PHP requires so much memory when running Composer. Depending on 
+the amount and constellation of your dependencies, it might very well happen that
+Composer requires 1.5 GB RAM to resolve them. Dependency resolving is a very
+complex task.</p>
+
+<p>Memory, however, is usually not a problem because package managers are not meant to
+be run on web servers and on your local machine you should have more than 1.5 GB
+RAM available.</p>
+
+<p>This is obvously not true for our integration that runs directly on your webserver.</p>
+
+<p>Composer works in such a way that it is analyzing the content of your "composer.json"
+file. It contains the packages that you would like to install and their respective
+versions. Basically, the GUI you see in the back end when you search for packages
+and add or remove them, just writes to that "composer.json" in the background for
+you. When you then update, Composer takes that "composer.json" and tries to resolve
+it to a set of packages and versions that work together. This is the hard part
+that uses a lot of memory. If Composer finds a possible combination, it will write
+the exact versions of all packages into a "composer.lock" file and then install
+the packages from there. You see, installing has never been a problem! Resolving
+the dependencies is.</p>
+
+<p>The Composer Resolver Cloud service tries to bring the dependency resolving process
+into the cloud. In other words, you push the "composer.json" to the cloud and it
+answers with either "does not work" or the "composer.lock" with a combination of
+packages that works. You should then be able to install the packages without running
+into any memory limits. Of course, installing the dependencies needs some RAM
+too but a regular web hosting should provide enough for it.</p>
+
+<h3>Important side notes:</h3>
+
+<p>RAM is very expensive. You don't pay for it on
+your webserver but we pay for it to run the cloud for you. As of today, we have
+no idea how much resources are needed or how well this is going to work out.
+Maybe there will be too many Contao users that use the cloud and we won't be able
+to afford the required cloud resources. This is a beta service and it might
+disappear again. <strong>Please, do not</strong> use the cloud
+service if you don't need to. If your server provides enough resources to run
+the update normally, use it! Thank you.</p>
+
+<p>I put over 100 hours of work into this project because I want to help the people and so I did it for free.<br>Please bear that in mind
+when you are about to report issues on <a href="https://github.com/contao-community-alliance/composer-client/issues" target="_blank">GitHub</a>.</p>
+
+<p>Yanick, terminal42 gmbh</p>
+
+CLOUDUPDATEEXPLANATION;
+
+$GLOBALS['TL_LANG']['composer_client']['cloud_info_headline'] = 'Current Cloud information';
+$GLOBALS['TL_LANG']['composer_client']['cloud_info']['approxWaitingTimeHuman'] = 'Current estimated waiting time';
+$GLOBALS['TL_LANG']['composer_client']['cloud_info']['numberOfJobsInQueue'] = 'Current # of jobs queued';
+$GLOBALS['TL_LANG']['composer_client']['cloud_info']['numberOfWorkers'] = 'Current # of workers running';
+$GLOBALS['TL_LANG']['composer_client']['cloud_update_exception'] = 'Unfortunately, a (yet) unknown error occurred. Please check your "system/logs/composer_cloud_update_error.log" file and report it to us so we can try to improve and find a specific human-readable error message for this type of error.';
+$GLOBALS['TL_LANG']['composer_client']['cloud_sponsors_headline'] = 'Sponsors';
+$GLOBALS['TL_LANG']['composer_client']['cloud_sponsors_link_title'] = 'Visit the website of %s';
+
+/**
+ * Cloud update errors
+ */
+$GLOBALS['TL_LANG']['composer_client']['cloud_update_errors']['url_malformed']          = 'The URL you entered in the back end seems to be malformed!';
+$GLOBALS['TL_LANG']['composer_client']['cloud_update_errors']['could_not_resolve_host'] = 'The URL you entered in the back end could not be resolved to a valid host name!';
+$GLOBALS['TL_LANG']['composer_client']['cloud_update_errors']['connection_refused']     = 'The URL you entered in the back end could not be connected to. Make sure the cloud endpoint is reachable from your webserver and up and running!';
+$GLOBALS['TL_LANG']['composer_client']['cloud_update_errors']['operation_timed_out']    = 'The connection operation timed out. Are you sure the Cloud servers are reachable?';
 
 /**
  * Migration wizard
@@ -339,3 +414,5 @@ $GLOBALS['TL_LANG']['composer_client']['update']               = 'Update package
 $GLOBALS['TL_LANG']['composer_client']['save']                 = 'Save';
 $GLOBALS['TL_LANG']['composer_client']['close']                = 'Close';
 $GLOBALS['TL_LANG']['composer_client']['terminate']            = 'Terminate';
+$GLOBALS['TL_LANG']['composer_client']['cloud_confirm']        = 'Launch Cloud resolving now';
+$GLOBALS['TL_LANG']['composer_client']['install']              = 'Install packages now';

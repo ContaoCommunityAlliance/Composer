@@ -71,7 +71,7 @@ EOF;
     "type": "project",
     "license": "proprietary",
     "require": {
-        "contao-community-alliance/composer-client": "~0.14"
+        "contao-community-alliance/composer-client": "dev-feature/cloud-update"
     },
     "prefer-stable": true,
     "minimum-stability": "dev",
@@ -88,6 +88,10 @@ EOF;
         {
             "type": "artifact",
             "url": "packages"
+        },
+        {
+            "type": "git",
+            "url": "https://github.com/Toflar/composer-client.git"
         }
     ]
 }

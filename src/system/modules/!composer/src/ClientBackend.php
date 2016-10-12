@@ -25,6 +25,7 @@ use Composer\Installer;
 use Composer\IO\BufferIO;
 use Composer\Package\RootPackage;
 use ContaoCommunityAlliance\Contao\Composer\Controller\ClearComposerCacheController;
+use ContaoCommunityAlliance\Contao\Composer\Controller\CloudUpdateController;
 use ContaoCommunityAlliance\Contao\Composer\Controller\DependencyGraphController;
 use ContaoCommunityAlliance\Contao\Composer\Controller\DetachedController;
 use ContaoCommunityAlliance\Contao\Composer\Controller\DetailsController;
@@ -107,6 +108,24 @@ class ClientBackend extends \Backend
             }
 
             return $template->parse();
+        }
+
+        $cloudTmpFile = TL_ROOT . '/' . CloudUpdateController::TMP_FILE_PATHNAME;
+
+        if ($GLOBALS['TL_CONFIG']['composerUseCloudForUpdate'] && file_exists($cloudTmpFile)) {
+            $config = json_decode(file_get_contents($cloudTmpFile), true);
+            if (!$config['writtenLock']) {
+                $this->loadComposer();
+                $controller = new CloudUpdateController();
+                $controller->setConfigPathname($this->configPathname);
+                $controller->setComposer($this->composer);
+                return $controller->handle($input);
+            } else {
+                // Make sure we're redirected to the update view
+                if (strpos(\Environment::get('request'), 'update=packages') === false) {
+                    $this->redirect('contao/main.php?do=composer&update=packages');
+                }
+            }
         }
 
         if (file_exists(TL_ROOT . '/' . DetachedController::PID_FILE_PATHNAME)) {
