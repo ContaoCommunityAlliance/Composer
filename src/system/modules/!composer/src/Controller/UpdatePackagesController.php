@@ -164,6 +164,19 @@ class UpdatePackagesController extends AbstractController
             $cmd .= ' --dry-run';
         }
 
+        switch ($this->composer->getConfig()->get('preferred-install')) {
+            case 'source':
+                $cmd .= ' --prefer-source';
+                break;
+            case 'dist':
+                $cmd .= ' --prefer-dist';
+                break;
+            case 'auto':
+            default:
+                // noop
+                break;
+        }
+
         if ($packages) {
             $cmd .= ' --with-dependencies ' . implode(' ', array_map('escapeshellarg', $packages));
         }
