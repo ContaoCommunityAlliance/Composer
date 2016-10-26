@@ -8,6 +8,7 @@
  * @copyright  ContaoCommunityAlliance 2013
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Tristan Lins <tristan.lins@bit3.de>
+ * @author     Fritz Michael Gschwantner <fmg@inspiredminds.at>
  * @package    Composer
  * @license    LGPLv3
  * @filesource
@@ -240,7 +241,21 @@ class UpdatePackagesController extends AbstractController
             escapeshellarg(TL_ROOT . '/' . DetachedController::OUT_FILE_PATHNAME)
         );
 
-        $processId = shell_exec($cmd);
+        if (substr(php_uname(), 0, 7) == "Windows") {
+            $proc = proc_open(
+                $cmd, 
+                array(
+                    array('pipe', 'r'),
+                    array('pipe', 'w'),
+                    array('pipe', 'w')
+                ), 
+                $pipes
+            );
+            $procStatus = proc_get_status($proc);
+            $processId = $procStatus['pid'];
+        } else {
+            $processId = shell_exec($cmd);
+        }
 
         $pidFile = new \File(DetachedController::PID_FILE_PATHNAME);
         $pidFile->write(trim($processId));
@@ -270,6 +285,8 @@ class UpdatePackagesController extends AbstractController
             $functions = array('shell_exec');
             if (!defined('PHP_WINDOWS_VERSION_BUILD')) {
                 $functions[] = 'posix_kill';
+            } else {
+                $functions[] = 'proc_open';
             }
         }
 
