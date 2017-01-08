@@ -11,6 +11,7 @@
  * @author     Dominik Zogg <dominik.zogg@gmail.com>
  * @author     Oliver Hoff <oliver@hofff.com>
  * @author     Nicky Hoff <nick@hofff.com>
+ * @author     Fritz Michael Gschwantner <fmg@inspiredminds.at>
  * @package    Composer
  * @license    LGPLv3
  * @filesource
@@ -74,7 +75,7 @@ EOF;
         "contao-community-alliance/composer-client": "~0.12"
     },
     "prefer-stable": true,
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "config": {
         "preferred-install": "dist",
         "cache-dir": "cache",
