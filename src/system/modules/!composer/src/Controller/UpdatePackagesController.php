@@ -9,7 +9,6 @@
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Tristan Lins <tristan.lins@bit3.de>
  * @author     Yanick Witschi <yanick.witschi@terminal42.ch>
- * @author     Yanick Witschi <yanick.witschi@terminal42.ch>
  * @author     Fritz Michael Gschwantner <fmg@inspiredminds.at>
  * @package    Composer
  * @license    LGPLv3
