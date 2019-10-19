@@ -18,8 +18,10 @@ namespace ContaoCommunityAlliance\Contao\Composer\Controller;
 
 use Composer\Downloader\DownloadManager;
 use Composer\Installer;
+use Composer\Package\Package;
 use Composer\Plugin\CommandEvent;
 use Composer\Plugin\PluginEvents;
+use Composer\Repository\ArrayRepository;
 use ContaoCommunityAlliance\Composer\Plugin\ConfigUpdateException;
 use ContaoCommunityAlliance\Composer\Plugin\DuplicateContaoException;
 use ContaoCommunityAlliance\Contao\Composer\Util\FunctionAvailabilityCheck;
@@ -40,24 +42,43 @@ class UpdatePackagesController extends AbstractController
     public function handle(\Input $input)
     {
         try {
-            $packages = $input->post('packages') ?: $input->get('packages');
-            $packages = explode(',', $packages);
-            $packages = array_filter($packages);
-            $dryRun   = $input->get('dry-run') || $input->post('dry-run');
+            $packages       = $input->post('packages') ?: $input->get('packages');
+            $packages       = explode(',', $packages);
+            $packages       = array_filter($packages);
+            $dryRun         = $input->get('dry-run') || $input->post('dry-run');
+            $installOnly    = false;
 
             $mode = $this->determineRuntimeMode();
 
+            if ($GLOBALS['TL_CONFIG']['composerUseCloudForUpdate']) {
+                $runCloud = true;
+                $cloudTmpFile = TL_ROOT . '/' . CloudUpdateController::TMP_FILE_PATHNAME;
+
+                if (file_exists($cloudTmpFile)) {
+                    $config = json_decode(file_get_contents($cloudTmpFile), true);
+                    if (isset($config['finished']) && $config['finished'] < time()) {
+                        $installOnly = true;
+                        $runCloud = false;
+                        unlink($cloudTmpFile);
+                    }
+                }
+
+                if ($runCloud) {
+                    $this->runCloudUpdate($packages, $dryRun);
+                }
+            }
+
             switch ($mode) {
                 case 'inline':
-                    $this->runInline($packages, $dryRun);
+                    $this->runInline($packages, $dryRun, $installOnly);
                     break;
 
                 case 'process':
-                    $this->runProcess($packages, $dryRun);
+                    $this->runProcess($packages, $dryRun, $installOnly);
                     break;
 
                 case 'detached':
-                    $this->runDetached($packages, $dryRun);
+                    $this->runDetached($packages, $dryRun, $installOnly);
                     break;
             }
         } catch (DuplicateContaoException $e) {
@@ -89,7 +110,7 @@ class UpdatePackagesController extends AbstractController
         }
     }
 
-    protected function runInline($packages, $dryRun)
+    protected function runInline($packages, $dryRun, $installOnly)
     {
         // disable all hooks
         $GLOBALS['TL_HOOKS'] = array();
@@ -100,8 +121,10 @@ class UpdatePackagesController extends AbstractController
         $downloadManager = $this->composer->getDownloadManager();
         $downloadManager->setOutputProgress(false);
 
-        $argv = array(false, 'update');
-        if ($dryRun) {
+        $command = $installOnly ? 'install' : 'update';
+
+        $argv = array(false, $command);
+        if ($dryRun && !$installOnly) {
             $argv[] = '--dry-run';
         }
         if ($packages) {
@@ -112,13 +135,29 @@ class UpdatePackagesController extends AbstractController
         $argvInput    = new ArgvInput($argv);
         $streamOutput = new StreamOutput($outputStream);
 
-        $commandEvent = new CommandEvent(PluginEvents::COMMAND, 'update', $argvInput, $streamOutput);
+        $commandEvent = new CommandEvent(PluginEvents::COMMAND, $command, $argvInput, $streamOutput);
         $this->composer
             ->getEventDispatcher()
             ->dispatch($commandEvent->getName(), $commandEvent);
 
         $installer = Installer::create($this->io, $this->composer);
-        $installer->setDryRun($dryRun);
+
+        // Add contao/core as package
+        if ($GLOBALS['TL_CONFIG']['composerUseCloudForUpdate']) {
+            $additionalInstalledRepository = new ArrayRepository();
+            $installed = CloudUpdateController::getInstalledPackages();
+            foreach ($installed as $name => $version) {
+                $additionalInstalledRepository->addPackage(
+                    new Package($name, $version, $version)
+                );
+            }
+            $installer->setAdditionalInstalledRepository($additionalInstalledRepository);
+        }
+
+        if (!$installOnly) {
+            $installer->setDryRun($dryRun);
+        }
+
         $installer->setUpdateWhitelist($packages);
         $installer->setWhitelistDependencies(true);
 
@@ -136,7 +175,7 @@ class UpdatePackagesController extends AbstractController
                 break;
         }
 
-        if (file_exists(TL_ROOT . '/' . $lockPathname)) {
+        if (file_exists(TL_ROOT . '/' . $lockPathname) && !$installOnly) {
             $installer->setUpdate(true);
         }
 
@@ -154,14 +193,17 @@ class UpdatePackagesController extends AbstractController
         $this->redirect('contao/main.php?do=composer&update=database');
     }
 
-    private function buildCmd($packages, $dryRun)
+    private function buildCmd($packages, $dryRun, $installOnly)
     {
+        $command = $installOnly ? 'install' : 'update';
+
         $cmd = sprintf(
-            '%s composer.phar update --no-ansi --no-interaction',
-            $GLOBALS['TL_CONFIG']['composerPhpPath']
+            '%s composer.phar %s --no-ansi --no-interaction',
+            $GLOBALS['TL_CONFIG']['composerPhpPath'],
+            $command
         );
 
-        if ($dryRun) {
+        if ($dryRun && !$installOnly) {
             $cmd .= ' --dry-run';
         }
 
@@ -178,7 +220,7 @@ class UpdatePackagesController extends AbstractController
                 break;
         }
 
-        if ($packages) {
+        if ($packages && !$installOnly) {
             $cmd .= ' --with-dependencies ' . implode(' ', array_map('escapeshellarg', $packages));
         }
 
@@ -205,12 +247,12 @@ class UpdatePackagesController extends AbstractController
         return $cmd;
     }
 
-    protected function runProcess($packages, $dryRun)
+    protected function runProcess($packages, $dryRun, $installOnly)
     {
         // disable all hooks
         $GLOBALS['TL_HOOKS'] = array();
 
-        $cmd          = $this->buildCmd($packages, $dryRun);
+        $cmd          = $this->buildCmd($packages, $dryRun, $installOnly);
         $inputStream  = fopen('php://temp', 'r');
         $outputStream = fopen('php://temp', 'rw');
         $pipes        = array();
@@ -243,9 +285,9 @@ class UpdatePackagesController extends AbstractController
         $this->redirect('contao/main.php?do=composer&update=database');
     }
 
-    protected function runDetached($packages, $dryRun)
+    protected function runDetached($packages, $dryRun, $installOnly)
     {
-        $cmd = $this->buildCmd($packages, $dryRun);
+        $cmd = $this->buildCmd($packages, $dryRun, $installOnly);
 
         file_put_contents(TL_ROOT . '/' . DetachedController::OUT_FILE_PATHNAME, '$ ' . $cmd . PHP_EOL);
 
@@ -264,6 +306,22 @@ class UpdatePackagesController extends AbstractController
         $this->redirect('contao/main.php?do=composer');
     }
 
+    protected function runCloudUpdate($packages, $dryRun)
+    {
+        $config = [
+            'packages' => $packages,
+            'dryRun'   => $dryRun,
+            'created'  => time(),
+        ];
+
+        $tmpFile = new \File(CloudUpdateController::TMP_FILE_PATHNAME);
+        $tmpFile->write(json_encode($config));
+        $tmpFile->close();
+
+        // redirect to database update
+        $this->redirect('contao/main.php?do=composer');
+    }
+
     /**
      * Determine the runtime mode to use depending on the availability of functions.
      *
@@ -275,6 +333,12 @@ class UpdatePackagesController extends AbstractController
         if ('inline' === $mode) {
             return $mode;
         }
+
+        // Cloud update installation must use inline mode
+        if ($GLOBALS['TL_CONFIG']['composerUseCloudForUpdate']) {
+            return 'inline';
+        }
+
         $functions = array();
 
         if ($mode === 'process') {

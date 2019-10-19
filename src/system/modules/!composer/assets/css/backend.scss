@@ -702,3 +702,32 @@ table#sql_table {
     text-align: right;
   }
 }
+
+/**
+ * Cloud update
+ */
+.cloud_update_container {
+  margin: 3px 18px 9px;
+
+  .cloud_info {
+    float: right;
+    margin-left: 10px;
+    margin-bottom: 10px;
+    border: 1px dashed #8ab858;
+    border-radius: 5px;
+    padding: 10px;
+
+    h2 {
+      color: #8ab858;
+    }
+
+    .sponsors li {
+      width: 110px;
+      height: 110px;
+    }
+  }
+
+  #cloud_errors {
+    margin-bottom: 10px;
+  }
+}

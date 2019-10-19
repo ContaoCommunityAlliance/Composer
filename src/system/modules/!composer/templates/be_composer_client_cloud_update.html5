@@ -1,0 +1,63 @@
+<div id="tl_buttons">
+    <br>
+</div>
+
+<h2 class="sub_headline"><?php echo $GLOBALS['TL_LANG']['composer_client']['cloud_update']; ?></h2>
+
+<div class="cloud_update_container">
+    <p id="cloud_errors" class="tl_error<?php if (!$this->errors): ?> invisible<?php endif; ?>"><?php echo $this->errors; ?></p>
+
+    <?php if (!$this->confirmed): ?>
+    <ul class="cloud_info">
+        <h2><?= $GLOBALS['TL_LANG']['composer_client']['cloud_info_headline']; ?></h2>
+            <?php foreach (['approxWaitingTimeHuman', 'numberOfJobsInQueue', 'numberOfWorkers'] as $k): ?>
+            <li>- <?= $GLOBALS['TL_LANG']['composer_client']['cloud_info'][$k] ?>: <strong><?= $this->cloudInfo[$k]; ?></strong>
+            <?php endforeach; ?>
+        <h2><?= $GLOBALS['TL_LANG']['composer_client']['cloud_sponsors_headline']; ?></h2>
+        <ul class="sponsors">
+            <?php foreach ($this->sponsors as $sponsor): ?>
+            <li><a target="_blank" href="<?= $sponsor['href'] ?>" title="<?= sprintf($GLOBALS['TL_LANG']['composer_client']['cloud_sponsors_link_title'], $sponsor['name']) ?>"><img src="system/modules/!composer/assets/images/cloud_sponsor_logos/<?= $sponsor['logo'] ?>"></a></li>
+            <?php endforeach; ?>
+        </ul>
+    </ul>
+    <div><?php echo $GLOBALS['TL_LANG']['composer_client']['cloud_update_explanation']; ?></div>
+    <?php endif; ?>
+
+    <div id="cloud_update_job_container" style="display:none">
+        <p><strong>Cloud Job ID: </strong><span id="cloud_update_job_id">-</span></p>
+    </div>
+</div>
+
+<?php if (!$this->confirmed): ?>
+
+<form action="contao/main.php?do=composer" method="post">
+    <input type="hidden" name="REQUEST_TOKEN" value="<?= REQUEST_TOKEN ?>">
+    <div class="tl_formbody_submit">
+        <div class="tl_submit_container">
+            <input id="submit" type="submit" class="tl_submit" name="cloud_confirm" value="<?= $GLOBALS['TL_LANG']['composer_client']['cloud_confirm']; ?>"<?php if ($this->errors): ?> disabled<?php endif; ?>>
+            <input type="submit" class="tl_submit" name="terminate" value="<?= $GLOBALS['TL_LANG']['composer_client']['terminate']; ?>">
+        </div>
+    </div>
+</form>
+
+<?php else: ?>
+
+<pre id="output" class="output fullsize"><?= $this->output; ?></pre>
+<div class="refresh-indicator-wrapper"><div id="refresh-indicator" class="refresh-indicator"></div></div>
+<p id="uptime" class="uptime"><?= $this->uptime ?></p>
+
+<form action="contao/main.php?do=composer" method="post">
+    <input type="hidden" name="REQUEST_TOKEN" value="<?= REQUEST_TOKEN ?>">
+    <div class="tl_formbody_submit">
+        <div class="tl_submit_container">
+            <input id="install" type="submit" class="tl_submit" name="install" value="<?= $GLOBALS['TL_LANG']['composer_client']['install']; ?>"<?php if (!$this->isRunning || $this->jobStatus !== 'finished'): ?> disabled<?php endif; ?>>
+            <input id="terminate" type="submit" class="tl_submit" name="terminate" value="<?= $GLOBALS['TL_LANG']['composer_client']['terminate']; ?>">
+        </div>
+    </div>
+</form>
+
+<?php if ($this->isRunning): ?>
+<script src="system/modules/!composer/assets/js/cloud_update.js"></script>
+<?php endif; ?>
+
+<?php endif; ?>

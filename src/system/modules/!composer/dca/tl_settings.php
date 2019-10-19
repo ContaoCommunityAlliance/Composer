@@ -29,15 +29,18 @@ if (!$GLOBALS['TL_CONFIG']['composerAllowRepoClient']) {
  * Palettes
  */
 $GLOBALS['TL_DCA']['tl_settings']['palettes']['__selector__'][] = 'composerExecutionMode';
+$GLOBALS['TL_DCA']['tl_settings']['palettes']['__selector__'][] = 'composerUseCloudForUpdate';
 
 $GLOBALS['TL_DCA']['tl_settings']['palettes']['default'] .=
     ';{composer_legend:hide},composerAutoUpdateLibrary,' .
-    'composerExecutionMode,composerVerbosity,composerRemoveRepositoryTables';
+    'composerExecutionMode,composerVerbosity,composerRemoveRepositoryTables,composerUseCloudForUpdate';
 
 $GLOBALS['TL_DCA']['tl_settings']['subpalettes']['composerExecutionMode_process']  =
     'composerPhpPath,composerProfiling';
 $GLOBALS['TL_DCA']['tl_settings']['subpalettes']['composerExecutionMode_detached'] =
     'composerPhpPath,composerProfiling';
+$GLOBALS['TL_DCA']['tl_settings']['subpalettes']['composerUseCloudForUpdate'] =
+    'composerCloudEndpoint,composerCloudAuthKey';
 
 
 /**
@@ -98,5 +101,35 @@ $GLOBALS['TL_DCA']['tl_settings']['fields']['composerRemoveRepositoryTables'] = 
     'inputType' => 'checkbox',
     'eval'      => array(
         'tl_class' => 'm12 w50',
+    ),
+);
+$GLOBALS['TL_DCA']['tl_settings']['fields']['composerUseCloudForUpdate'] = array(
+    'label'     => &$GLOBALS['TL_LANG']['tl_settings']['composerUseCloudForUpdate'],
+    'inputType' => 'checkbox',
+    'eval'      => array(
+        'tl_class'          => 'm12 clr',
+        'submitOnChange'    => true
+    ),
+    'save_callback' => [function($v) {
+        $automator = new \Automator();
+        $automator->purgeTempFolder();
+        return $v;
+    }]
+);
+$GLOBALS['TL_DCA']['tl_settings']['fields']['composerCloudEndpoint'] = array(
+    'label'     => &$GLOBALS['TL_LANG']['tl_settings']['composerCloudEndpoint'],
+    'inputType' => 'text',
+    'eval'      => array(
+        'tl_class'  => 'w50',
+        'rgxp'      => 'url',
+        'mandatory' => true,
+    ),
+);
+
+$GLOBALS['TL_DCA']['tl_settings']['fields']['composerCloudAuthKey'] = array(
+    'label'     => &$GLOBALS['TL_LANG']['tl_settings']['composerCloudAuthKey'],
+    'inputType' => 'text',
+    'eval'      => array(
+        'tl_class' => 'w50'
     ),
 );

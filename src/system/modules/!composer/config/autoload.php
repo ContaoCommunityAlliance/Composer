@@ -41,5 +41,6 @@ TemplateLoader::addFiles(
         'be_composer_client_search'           => 'system/modules/!composer/templates',
         'be_composer_client_dependency_graph' => 'system/modules/!composer/templates',
         'be_composer_client_detached'         => 'system/modules/!composer/templates',
+        'be_composer_client_cloud_update'     => 'system/modules/!composer/templates',
     )
 );

@@ -29,7 +29,18 @@ $GLOBALS['TL_LANG']['tl_settings']['composerRemoveRepositoryTables'] = array(
     'The old ER2 repository client tables will not be removed by the composer client database update tool, ' .
     'until you enable this checkbox.'
 );
-
+$GLOBALS['TL_LANG']['tl_settings']['composerUseCloudForUpdate'] = array(
+    'Use the Cloud to resolve dependencies (Beta version!)',
+    'If your server does not provide enough resources to resolve package dependencies, you can let the cloud handle it for you.'
+);
+$GLOBALS['TL_LANG']['tl_settings']['composerCloudEndpoint'] = array(
+    'Cloud endpoint',
+    'Here you can configure the cloud endpoint.'
+);
+$GLOBALS['TL_LANG']['tl_settings']['composerCloudAuthKey'] = array(
+    'Cloud auth key',
+    'If the cloud endpoint is protected, enter your auth key here.'
+);
 
 /**
  * Reference
