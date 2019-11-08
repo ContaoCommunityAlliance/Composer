@@ -75,7 +75,7 @@ EOF;
         "contao-community-alliance/composer-client": "~0.14"
     },
     "prefer-stable": true,
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "config": {
         "preferred-install": "dist",
         "cache-dir": "cache",
